@@ -80,9 +80,8 @@ sub from {
 	}
 
 	if ( my @dupe = sort keys %dupe ) {
-		my $self = $class->new;
-		$self->with_error_invalid_request( "duplicate parameter: @dupe" );
-		return $self;
+		my $self = $class->new( method => $meth, headers => $hdr );
+		return $self->with_error_invalid_request( "duplicate parameter: @dupe" );
 	}
 
 	while ( my ( $k, $v ) = each %param ) { delete $param{ $k } if '' eq $v }
