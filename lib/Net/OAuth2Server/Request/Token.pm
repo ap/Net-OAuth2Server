@@ -18,4 +18,4 @@ sub dispatch {
 	$class ? $class->new( %$self ) : $self->with_error_unsupported_grant_type;
 }
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';

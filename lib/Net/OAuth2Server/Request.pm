@@ -143,4 +143,4 @@ sub with_error_invalid_scope             { shift->with_error( invalid_scope     
 sub with_error_server_error              { shift->with_error( server_error              => @_ ) }
 sub with_error_temporarily_unavailable   { shift->with_error( temporarily_unavailable   => @_ ) }
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
