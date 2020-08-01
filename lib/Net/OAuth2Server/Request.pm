@@ -21,7 +21,7 @@ sub from_psgi {
 	my $body;
 	$body = do { $loaded ||= require Plack::Request; Plack::Request->new( $env )->content }
 		if 'application/x-www-form-urlencoded' eq ( $env->{'CONTENT_TYPE'} || '' )
-		and not grep $env->{'REQUEST_METHOD'} eq $_, qw( GET HEAD );
+		and grep $env->{'REQUEST_METHOD'} eq $_, $class->request_body_methods;
 	$class->from(
 		$env->{'REQUEST_METHOD'},
 		$env->{'QUERY_STRING'},
