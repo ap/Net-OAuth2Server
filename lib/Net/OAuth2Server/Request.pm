@@ -48,9 +48,12 @@ sub from {
 
 	%$hdr = map { my $k = $_; y/-/_/; ( lc, $hdr->{ $k } ) } $hdr ? keys %$hdr : ();
 
-	undef $body
-		if ( not grep $meth eq $_, $class->request_body_methods )
-		or ( $hdr->{'content_type'} || '' ) !~ $ct_rx;
+	if ( grep $meth eq $_, $class->request_body_methods ) {
+		return $class->new( method => $meth, headers => $hdr )->with_error_invalid_request( 'bad content type' )
+			if ( $hdr->{'content_type'} || '' ) !~ $ct_rx;
+	} else {
+		undef $body;
+	}
 
 	for ( $query, $body ) {
 		defined $_ ? y/+/ / : ( $_ = '' );
