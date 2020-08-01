@@ -15,12 +15,14 @@ sub set_parameters        { 'scope' }
 
 use Object::Tiny::Lvalue qw( method headers parameters confidential scope error );
 
+my $ct_rx = qr[ \A application/x-www-form-urlencoded [ \t]* (?: ; | \z ) ]xi;
+
 my $loaded;
 sub from_psgi {
 	my ( $class, $env ) = ( shift, @_ );
 	my $body;
 	$body = do { $loaded ||= require Plack::Request; Plack::Request->new( $env )->content }
-		if 'application/x-www-form-urlencoded' eq ( $env->{'CONTENT_TYPE'} || '' )
+		if ( $env->{'CONTENT_TYPE'} || '' ) =~ $ct_rx
 		and grep $env->{'REQUEST_METHOD'} eq $_, $class->request_body_methods;
 	$class->from(
 		$env->{'REQUEST_METHOD'},
@@ -48,7 +50,7 @@ sub from {
 
 	undef $body
 		if ( not grep $meth eq $_, $class->request_body_methods )
-		or 'application/x-www-form-urlencoded' ne ( $hdr->{'content_type'} || '' );
+		or ( $hdr->{'content_type'} || '' ) !~ $ct_rx;
 
 	for ( $query, $body ) {
 		defined $_ ? y/+/ / : ( $_ = '' );
