@@ -6,7 +6,7 @@ use parent 'Net::OAuth2Server::Request';
 sub allowed_methods       { 'POST' }
 sub accepted_auth         { 'Basic' }
 sub required_parameters   { 'grant_type' }
-sub required_confidential { 'client_secret' }
+sub confidential_parameters { 'client_secret' }
 
 sub get_grant {}
 

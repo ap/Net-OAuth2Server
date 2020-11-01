@@ -10,8 +10,8 @@ sub request_body_methods  { 'POST' }
 sub allowed_methods       {}
 sub accepted_auth         {}
 sub required_parameters   {}
-sub required_confidential {}
 sub set_parameters        { 'scope' }
+sub confidential_parameters {}
 
 use Object::Tiny::Lvalue qw( method headers parameters confidential scope error );
 
@@ -110,7 +110,7 @@ sub new {
 	$self->$_ ||= Net::OAuth2Server::Set->new( $params->{ $_ } ) for $class->set_parameters;
 	if ( not grep $meth eq $_, $self->allowed_methods )
 		{ return $self->with_error_invalid_request( "method not allowed: $meth" ) }
-	if ( my @visible = sort grep exists $params->{ $_ } && !$conf->{ $_ }, $self->required_confidential )
+	if ( my @visible = sort grep exists $params->{ $_ } && !$conf->{ $_ }, $self->confidential_parameters )
 		{ return $self->with_error_invalid_request( "parameter not accepted in query string: @visible" ) }
 	if ( my @missing = sort grep !exists $params->{ $_ }, $self->required_parameters )
 		{ return $self->with_error_invalid_request( "missing parameter: @missing" ) }
