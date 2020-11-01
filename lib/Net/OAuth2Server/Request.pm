@@ -104,20 +104,44 @@ sub from {
 sub new {
 	my $class  = shift;
 	my $self   = bless { @_ }, $class;
-	my $meth   = $self->method or Carp::croak 'missing request method';
-	my $params = $self->parameters   ||= {};
-	my $conf   = $self->confidential ||= {};
-	$self->$_ ||= Net::OAuth2Server::Set->new( $params->{ $_ } ) for $class->set_parameters;
-	if ( not grep $meth eq $_, $self->allowed_methods )
-		{ return $self->with_error_invalid_request( "method not allowed: $meth" ) }
-	if ( my @visible = sort grep exists $params->{ $_ } && !$conf->{ $_ }, $self->confidential_parameters )
-		{ return $self->with_error_invalid_request( "parameter not accepted in query string: @visible" ) }
-	if ( my @missing = sort grep !exists $params->{ $_ }, $self->required_parameters )
-		{ return $self->with_error_invalid_request( "missing parameter: @missing" ) }
+	$self->method or Carp::croak 'missing request method';
+	$self->confidential ||= {};
+	my $params = $self->parameters ||= {};
+	$self->$_ ||= Net::OAuth2Server::Set->new( $params->{ $_ } ) for $self->set_parameters;
+	$self->ensure_method( $self->allowed_methods ) or return $self;
+	$self->ensure_confidential( $self->confidential_parameters ) or return $self;
+	$self->ensure_required( $self->required_parameters ) or return $self;
 	$self->validated;
 }
 
 sub validated { $_[0] }
+
+#######################################################################
+
+sub ensure_method {
+	my $self = shift;
+	my $meth = $self->method;
+	my $disallowed = not grep $meth eq $_, @_;
+	$self->with_error_invalid_request( "method not allowed: $meth" ) if $disallowed;
+	not $disallowed;
+}
+
+sub ensure_required {
+	my $self = shift;
+	my $p = $self->parameters;
+	my @missing = sort grep !exists $p->{ $_ }, @_;
+	$self->with_error_invalid_request( "missing parameter: @missing" ) if @missing;
+	not @missing;
+}
+
+sub ensure_confidential {
+	my $self = shift;
+	my $p = $self->parameters;
+	my $confidential = $self->confidential;
+	my @visible = sort grep exists $p->{ $_ } && !$confidential->{ $_ }, @_;
+	$self->with_error_invalid_request( "parameter not accepted in query string: @visible" ) if @visible;
+	not @visible;
+}
 
 #######################################################################
 
