@@ -12,7 +12,7 @@ sub get_grant {
 	my ( $self, $grant_maker ) = ( shift, shift );
 	return if $self->error;
 	$grant_maker->from_bearer_token( $self, $self->param( 'access_token' ), @_ )
-		or ( $self->error || $self->with_error_invalid_token, return );
+		or ( $self->error || $self->set_error_invalid_token, return );
 }
 
 our $VERSION = '0.002';

@@ -19,7 +19,7 @@ sub new_error {
 sub for_authorization {
 	my ( $class, $req, $grant ) = ( shift, @_ );
 
-	$req->with_error_unsupported_response_type unless Net::OAuth2Server::Set
+	$req->set_error_unsupported_response_type unless Net::OAuth2Server::Set
 		->new( $class->supported_response_types )
 		->contains_all( $req->response_type->list );
 

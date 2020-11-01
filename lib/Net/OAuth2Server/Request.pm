@@ -49,7 +49,7 @@ sub from {
 	%$hdr = map { my $k = $_; y/-/_/; ( lc, $hdr->{ $k } ) } $hdr ? keys %$hdr : ();
 
 	if ( grep $meth eq $_, $class->request_body_methods ) {
-		return $class->new( method => $meth, headers => $hdr )->with_error_invalid_request( 'bad content type' )
+		return $class->new( method => $meth, headers => $hdr )->set_error_invalid_request( 'bad content type' )
 			if ( $hdr->{'content_type'} || '' ) !~ $ct_rx;
 	} else {
 		undef $body;
@@ -86,7 +86,7 @@ sub from {
 
 	if ( my @dupe = sort keys %dupe ) {
 		my $self = $class->new( method => $meth, headers => $hdr );
-		return $self->with_error_invalid_request( "duplicate parameter: @dupe" );
+		return $self->set_error_invalid_request( "duplicate parameter: @dupe" );
 	}
 
 	while ( my ( $k, $v ) = each %param ) { delete $param{ $k } if '' eq $v }
@@ -122,7 +122,7 @@ sub ensure_method {
 	my $self = shift;
 	my $meth = $self->method;
 	my $disallowed = not grep $meth eq $_, @_;
-	$self->with_error_invalid_request( "method not allowed: $meth" ) if $disallowed;
+	$self->set_error_invalid_request( "method not allowed: $meth" ) if $disallowed;
 	not $disallowed;
 }
 
@@ -130,7 +130,7 @@ sub ensure_required {
 	my $self = shift;
 	my $p = $self->parameters;
 	my @missing = sort grep !exists $p->{ $_ }, @_;
-	$self->with_error_invalid_request( "missing parameter: @missing" ) if @missing;
+	$self->set_error_invalid_request( "missing parameter: @missing" ) if @missing;
 	not @missing;
 }
 
@@ -139,7 +139,7 @@ sub ensure_confidential {
 	my $p = $self->parameters;
 	my $confidential = $self->confidential;
 	my @visible = sort grep exists $p->{ $_ } && !$confidential->{ $_ }, @_;
-	$self->with_error_invalid_request( "parameter not accepted in query string: @visible" ) if @visible;
+	$self->set_error_invalid_request( "parameter not accepted in query string: @visible" ) if @visible;
 	not @visible;
 }
 
@@ -154,17 +154,17 @@ sub param_if_confidential {
 
 #######################################################################
 
-sub with_error { my $self = shift; $self->error = Net::OAuth2Server::Response->new_error( @_ ); $self }
-sub with_error_invalid_token             { shift->with_error( invalid_token             => @_ ) }
-sub with_error_invalid_request           { shift->with_error( invalid_request           => @_ ) }
-sub with_error_invalid_client            { shift->with_error( invalid_client            => @_ ) }
-sub with_error_invalid_grant             { shift->with_error( invalid_grant             => @_ ) }
-sub with_error_unauthorized_client       { shift->with_error( unauthorized_client       => @_ ) }
-sub with_error_access_denied             { shift->with_error( access_denied             => @_ ) }
-sub with_error_unsupported_response_type { shift->with_error( unsupported_response_type => @_ ) }
-sub with_error_unsupported_grant_type    { shift->with_error( unsupported_grant_type    => @_ ) }
-sub with_error_invalid_scope             { shift->with_error( invalid_scope             => @_ ) }
-sub with_error_server_error              { shift->with_error( server_error              => @_ ) }
-sub with_error_temporarily_unavailable   { shift->with_error( temporarily_unavailable   => @_ ) }
+sub set_error { my $self = shift; $self->error = Net::OAuth2Server::Response->new_error( @_ ); $self }
+sub set_error_invalid_token             { shift->set_error( invalid_token             => @_ ) }
+sub set_error_invalid_request           { shift->set_error( invalid_request           => @_ ) }
+sub set_error_invalid_client            { shift->set_error( invalid_client            => @_ ) }
+sub set_error_invalid_grant             { shift->set_error( invalid_grant             => @_ ) }
+sub set_error_unauthorized_client       { shift->set_error( unauthorized_client       => @_ ) }
+sub set_error_access_denied             { shift->set_error( access_denied             => @_ ) }
+sub set_error_unsupported_response_type { shift->set_error( unsupported_response_type => @_ ) }
+sub set_error_unsupported_grant_type    { shift->set_error( unsupported_grant_type    => @_ ) }
+sub set_error_invalid_scope             { shift->set_error( invalid_scope             => @_ ) }
+sub set_error_server_error              { shift->set_error( server_error              => @_ ) }
+sub set_error_temporarily_unavailable   { shift->set_error( temporarily_unavailable   => @_ ) }
 
 our $VERSION = '0.002';
