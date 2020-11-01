@@ -111,10 +111,8 @@ sub new {
 	$self->ensure_method( $self->allowed_methods ) or return $self;
 	$self->ensure_confidential( $self->confidential_parameters ) or return $self;
 	$self->ensure_required( $self->required_parameters ) or return $self;
-	$self->validated;
+	$self;
 }
-
-sub validated { $_[0] }
 
 #######################################################################
 
