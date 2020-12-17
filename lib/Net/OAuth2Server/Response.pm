@@ -51,6 +51,9 @@ sub for_token {
 
 #######################################################################
 
+sub params    { my $p = shift->parameters; @$p{ @_ } }
+sub param     { my $p = shift->parameters; $$p{ $_[0] } }
+
 sub add {
 	my ( $self, $key, $value ) = ( shift, @_ );
 	$self->parameters->{ $key } = $value if defined $value and '' ne $value;

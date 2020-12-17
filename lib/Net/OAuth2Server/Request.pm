@@ -143,8 +143,8 @@ sub ensure_confidential {
 
 #######################################################################
 
-sub params { my $p = shift->parameters; @$p{ @_ } }
-sub param  { my $p = shift->parameters; $$p{ $_[0] } }
+sub params    { my $p = shift->parameters; @$p{ @_ } }
+sub param     { my $p = shift->parameters; $$p{ $_[0] } }
 sub param_if_confidential {
 	my ( $self, $name ) = ( shift, @_ );
 	$self->confidential->{ $name } ? $self->parameters->{ $name } : ();
