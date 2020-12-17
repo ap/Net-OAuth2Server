@@ -1,19 +1,20 @@
 use strict; use warnings;
 
 package Net::OAuth2Server::Response;
-use Object::Tiny::Lvalue qw( param is_error redirect_uri use_fragment );
+use Object::Tiny::Lvalue qw( parameters is_error redirect_uri use_fragment );
 use URI::Escape ();
 use Carp ();
 
 sub supported_response_types { qw( code token ) }
 
-sub new { my $class = shift; bless { param => {}, @_ }, $class }
+sub new { my $class = shift; bless { parameters => {}, @_ }, $class }
+
 
 sub new_error {
 	my ( $class, $type, $desc, %param ) = ( shift, @_ );
 	$param{'error'} = $type or Carp::croak 'missing error type';
 	$param{'error_description'} = $desc if defined $desc;
-	$class->new( is_error => 1, param => \%param );
+	$class->new( is_error => 1, parameters => \%param );
 }
 
 sub for_authorization {
@@ -52,7 +53,7 @@ sub for_token {
 
 sub add {
 	my ( $self, $key, $value ) = ( shift, @_ );
-	$self->param->{ $key } = $value if defined $value and '' ne $value;
+	$self->parameters->{ $key } = $value if defined $value and '' ne $value;
 	$self;
 }
 
@@ -60,7 +61,7 @@ sub add_token {
 	my ( $self, %arg ) = ( shift, @_ );
 	Carp::croak 'cannot add token to an error response' if $self->is_error;
 	Carp::croak "missing $_[0]" if not defined $_[1];
-	@{ $self->param }{ keys %arg } = values %arg;
+	@{ $self->parameters }{ keys %arg } = values %arg;
 	$self;
 }
 
@@ -86,15 +87,17 @@ sub status { shift->is_error ? 400 : 200 }
 sub as_bearer_auth_header {
 	my $self = shift;
 	Carp::croak 'cannot create auth header from non-error response' if not $self->is_error;
-	do { my $p = $self->param; 'Bearer ' . join ', ', sort map qq{$_="$p->{ $_ }"}, keys %$p };
+	my $p = $self->parameters;
+	'Bearer ' . join ', ', sort map qq{$_="$p->{ $_ }"}, keys %$p;
 }
 
 my $e = \&URI::Escape::uri_escape;
 sub as_uri {
 	my $self = shift;
 	my $uri = $self->redirect_uri or return;
+	my $p = $self->parameters;
 	my $idx = -1;
-	my $qps = do { my $p = $self->param; join '&', map $e->( $_ ).'='.$e->( $p->{ $_ } ), keys %$p };
+	my $qps = join '&', map $e->( $_ ).'='.$e->( $p->{ $_ } ), keys %$p;
 	my $sep = $self->use_fragment ? '#' : $uri =~ /\?/ ? '&' : '?';
 	$uri . $sep . $qps;
 }
